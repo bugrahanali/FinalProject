@@ -1,5 +1,6 @@
 ﻿using DataAccess.Abstract;
 using Entities.Concrete;
+using Entities.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -72,7 +73,10 @@ namespace DataAccess.Concrete.InMemory
 
         }
 
-        
+        public List<ProductDetailDto> GetpdoructDetails()
+        {
+            throw new NotImplementedException();
+        }
 
         public void Update(Product product) 
         {        //Gönderdiğim ürün Id 'sine sahib olan listedeki ürün ıd sini bul

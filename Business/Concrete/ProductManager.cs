@@ -1,34 +1,57 @@
 ﻿using Business.Abstract;
 using DataAccess.Abstract;
 using Entities.Concrete;
+using Entities.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace Business.Concrete
 {
+
+
     public class ProductManager : IProductService
     {
-        IProductDal _ProductDal;
+        IProductDal _productDal;
 
         public ProductManager(IProductDal productDal)
         {
-            _ProductDal = productDal;
+            _productDal = productDal;
+        }
+
+        public void Add()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Delete()
+        {
+            throw new NotImplementedException();
         }
 
         public List<Product> GetAll()
         {
-            return _ProductDal.GetAll();
+            return _productDal.GetAll();
         }
 
         public List<Product> GetAllByCategoryId(int id)
         {
-            return _ProductDal.GetAll(p=>p.CategoryId==id);
+            return _productDal.GetAll(p=>p.CategoryId==id);
         }
 
         public List<Product> GetAllByUnitPrice(decimal min, decimal max)
         {
-            return _ProductDal.GetAll(p => p.UnitPrice >= min && p.UnitPrice<= max);
+            return _productDal.GetAll(p => p.UnitPrice >= min && p.UnitPrice<= max);
+        }
+
+        public List<ProductDetailDto> GetpdoructDetails()
+        {
+            return _productDal.GetpdoructDetails();
+        }
+
+        public void Update()
+        {
+            throw new NotImplementedException();
         }
     }
 }
