@@ -73,7 +73,7 @@ namespace DataAccess.Concrete.InMemory
 
         }
 
-        public List<ProductDetailDto> GetpdoructDetails()
+        public List<ProductDetailDto> GetProductDetails()
         {
             throw new NotImplementedException();
         }

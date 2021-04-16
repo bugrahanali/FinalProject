@@ -1,9 +1,20 @@
 ﻿using Business.Abstract;
+using Business.BusinessAspects.Autofac;
+using Business.CCS;
+using Business.Constents_sabitler_;
+using Business.ValidationRules.FluentValidation;
+using Core.Aspects.Autofac.Caching;
+using Core.Aspects.Autofac.Validation;
+using Core.CrossCuttingConcerns.Validation;
+using Core.Utilities.Business;
+using Core.Utilities.Result;
 using DataAccess.Abstract;
 using Entities.Concrete;
 using Entities.DTOs;
+using FluentValidation;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Business.Concrete
@@ -13,46 +24,107 @@ namespace Business.Concrete
     public class ProductManager : IProductService
     {
         IProductDal _productDal;
+        ICategoryService _categoryService;
+        
 
-        public ProductManager(IProductDal productDal)
+        public ProductManager(IProductDal productDal, ICategoryService categoryService)
         {
             _productDal = productDal;
+            _categoryService = categoryService;
+
+
+
+        }
+        [CacheRemoveAspect("IProductService.Get")]
+        [SecuredOperation("admin")]
+        [ValidationAspect(typeof(ProductValidator))]
+        public IResult Add(Product product)
+        {
+            IResult result = BusinessRules.Run(ChechkIfproductCountofCategoryCorrect(product.CategoryId),
+                ChechkIfProductNameExist(product.ProductName));
+            if (result !=null)
+            {
+                return result;
+            }
+            _productDal.Add(product);
+            return new SuccessResult(Messages.ProductAdded);
+
+                
         }
 
-        public void Add()
+        public void Delete(Product product)
         {
             throw new NotImplementedException();
         }
 
-        public void Delete()
+        [CacheAspect]
+        //[PerformanceAspect(5)]
+        public IDataResult<List<Product>> GetAll()
         {
-            throw new NotImplementedException();
+            if (DateTime.Now.Hour==20)
+            {
+                return new ErrorDataResult<List<Product>>(Messages.MaintenanceTime);
+            }
+            return new SuccessDataResult<List<Product>>(_productDal.GetAll(),Messages.ProductsListed);
         }
 
-        public List<Product> GetAll()
-        {
-            return _productDal.GetAll();
+        public IDataResult<List<Product>> GetAllByCategoryId(int id)
+        { 
+            return new SuccessDataResult<List<Product>>(_productDal.GetAll(p=>p.CategoryId==id));
         }
 
-        public List<Product> GetAllByCategoryId(int id)
+        public IDataResult<List<Product>> GetAllByUnitPrice(decimal min, decimal max)
         {
-            return _productDal.GetAll(p=>p.CategoryId==id);
+            return new SuccessDataResult<List<Product>>(_productDal.GetAll(p => p.UnitPrice >= min && p.UnitPrice<= max));
         }
 
-        public List<Product> GetAllByUnitPrice(decimal min, decimal max)
+        public IDataResult<List<ProductDetailDto>> GetProductDetails()
         {
-            return _productDal.GetAll(p => p.UnitPrice >= min && p.UnitPrice<= max);
+            return new SuccessDataResult<List<ProductDetailDto>>(_productDal.GetProductDetails());
         }
 
-        public List<ProductDetailDto> GetpdoructDetails()
+        [ValidationAspect(typeof(ProductValidator))]
+        [CacheRemoveAspect("IProductService.Get")]
+        public void Update(Product product)
         {
-            return _productDal.GetpdoructDetails();
+            _productDal.Update(product);
         }
 
-        public void Update()
+
+
+
+
+
+
+
+
+
+        private IResult ChechkIfproductCountofCategoryCorrect(int categoryId)
         {
-            throw new NotImplementedException();
+            var result = _productDal.GetAll(p => p.CategoryId == categoryId).Count;
+            if (result >= 10)
+            {
+                return new ErrorResult(Messages.ProductCountOfCategoryError);
+            }
+            return new SuccessResult();       
         }
+
+
+        private IResult ChechkIfProductNameExist(string productName)
+        {
+            var result = _productDal.GetAll(p => p.ProductName == productName).Any();
+            if (result)
+            {
+                return new ErrorResult(Messages.ProductNameAlreadyexist);
+            }
+            
+                 return new SuccessResult();
+        
+        }
+
+      
+        
+
     }
 }
    
